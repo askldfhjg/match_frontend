@@ -16,7 +16,7 @@ func main() {
 	)
 
 	// Register handler
-	pb.RegisterMatch_frontendHandler(srv.Server(), new(handler.Match_frontend))
+	pb.RegisterMatchFrontendHandler(srv.Server(), new(handler.Match_frontend))
 
 	// Run service
 	if err := srv.Run(); err != nil {
