@@ -42,7 +42,8 @@ func NewMatchFrontendEndpoints() []*api.Endpoint {
 // Client API for MatchFrontend service
 
 type MatchFrontendService interface {
-	Call(ctx context.Context, in *Request, opts ...client.CallOption) (*Response, error)
+	EnterMatch(ctx context.Context, in *EnterMatchReq, opts ...client.CallOption) (*EnterMatchRsp, error)
+	LevelMatch(ctx context.Context, in *LevelMatchReq, opts ...client.CallOption) (*LevelMatchRsp, error)
 }
 
 type matchFrontendService struct {
@@ -57,9 +58,19 @@ func NewMatchFrontendService(name string, c client.Client) MatchFrontendService 
 	}
 }
 
-func (c *matchFrontendService) Call(ctx context.Context, in *Request, opts ...client.CallOption) (*Response, error) {
-	req := c.c.NewRequest(c.name, "MatchFrontend.Call", in)
-	out := new(Response)
+func (c *matchFrontendService) EnterMatch(ctx context.Context, in *EnterMatchReq, opts ...client.CallOption) (*EnterMatchRsp, error) {
+	req := c.c.NewRequest(c.name, "MatchFrontend.EnterMatch", in)
+	out := new(EnterMatchRsp)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *matchFrontendService) LevelMatch(ctx context.Context, in *LevelMatchReq, opts ...client.CallOption) (*LevelMatchRsp, error) {
+	req := c.c.NewRequest(c.name, "MatchFrontend.LevelMatch", in)
+	out := new(LevelMatchRsp)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
 		return nil, err
@@ -70,12 +81,14 @@ func (c *matchFrontendService) Call(ctx context.Context, in *Request, opts ...cl
 // Server API for MatchFrontend service
 
 type MatchFrontendHandler interface {
-	Call(context.Context, *Request, *Response) error
+	EnterMatch(context.Context, *EnterMatchReq, *EnterMatchRsp) error
+	LevelMatch(context.Context, *LevelMatchReq, *LevelMatchRsp) error
 }
 
 func RegisterMatchFrontendHandler(s server.Server, hdlr MatchFrontendHandler, opts ...server.HandlerOption) error {
 	type matchFrontend interface {
-		Call(ctx context.Context, in *Request, out *Response) error
+		EnterMatch(ctx context.Context, in *EnterMatchReq, out *EnterMatchRsp) error
+		LevelMatch(ctx context.Context, in *LevelMatchReq, out *LevelMatchRsp) error
 	}
 	type MatchFrontend struct {
 		matchFrontend
@@ -88,6 +101,10 @@ type matchFrontendHandler struct {
 	MatchFrontendHandler
 }
 
-func (h *matchFrontendHandler) Call(ctx context.Context, in *Request, out *Response) error {
-	return h.MatchFrontendHandler.Call(ctx, in, out)
+func (h *matchFrontendHandler) EnterMatch(ctx context.Context, in *EnterMatchReq, out *EnterMatchRsp) error {
+	return h.MatchFrontendHandler.EnterMatch(ctx, in, out)
+}
+
+func (h *matchFrontendHandler) LevelMatch(ctx context.Context, in *LevelMatchReq, out *LevelMatchRsp) error {
+	return h.MatchFrontendHandler.LevelMatch(ctx, in, out)
 }

@@ -5,13 +5,32 @@ package match_frontend;
 option go_package = "./proto;match_frontend";
 
 service Match_frontend {
-	rpc Call(Request) returns (Response) {}
+	rpc EnterMatch(EnterMatchReq) returns(EnterMatchRsp){}
+	rpc LevelMatch(LevelMatchReq) returns(LevelMatchRsp){}
 }
 
-message Request {
-	string name = 1;
+message EnterMatchReq {
+  MatchInfo param = 1;
 }
 
-message Response {
-	string msg = 1;
+message EnterMatchRsp {
+  string matchId = 1;
+}
+
+message MatchInfo {
+  string playerId = 1;
+  int64  score = 2;
+  string gameId = 3;
+  int64 subType = 4;
+  string id = 5;
+}
+
+message LevelMatchReq {
+  string matchId = 1;
+  string gameId = 2;
+  int64 subType = 3;
+}
+
+message LevelMatchRsp {
+  string err = 1;
 }
