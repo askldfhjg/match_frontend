@@ -44,6 +44,7 @@ func NewMatchFrontendEndpoints() []*api.Endpoint {
 type MatchFrontendService interface {
 	EnterMatch(ctx context.Context, in *EnterMatchReq, opts ...client.CallOption) (*EnterMatchRsp, error)
 	LevelMatch(ctx context.Context, in *LevelMatchReq, opts ...client.CallOption) (*LevelMatchRsp, error)
+	GetMatchInfo(ctx context.Context, in *GetMatchInfoReq, opts ...client.CallOption) (*GetMatchInfoRsp, error)
 }
 
 type matchFrontendService struct {
@@ -78,17 +79,29 @@ func (c *matchFrontendService) LevelMatch(ctx context.Context, in *LevelMatchReq
 	return out, nil
 }
 
+func (c *matchFrontendService) GetMatchInfo(ctx context.Context, in *GetMatchInfoReq, opts ...client.CallOption) (*GetMatchInfoRsp, error) {
+	req := c.c.NewRequest(c.name, "MatchFrontend.GetMatchInfo", in)
+	out := new(GetMatchInfoRsp)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for MatchFrontend service
 
 type MatchFrontendHandler interface {
 	EnterMatch(context.Context, *EnterMatchReq, *EnterMatchRsp) error
 	LevelMatch(context.Context, *LevelMatchReq, *LevelMatchRsp) error
+	GetMatchInfo(context.Context, *GetMatchInfoReq, *GetMatchInfoRsp) error
 }
 
 func RegisterMatchFrontendHandler(s server.Server, hdlr MatchFrontendHandler, opts ...server.HandlerOption) error {
 	type matchFrontend interface {
 		EnterMatch(ctx context.Context, in *EnterMatchReq, out *EnterMatchRsp) error
 		LevelMatch(ctx context.Context, in *LevelMatchReq, out *LevelMatchRsp) error
+		GetMatchInfo(ctx context.Context, in *GetMatchInfoReq, out *GetMatchInfoRsp) error
 	}
 	type MatchFrontend struct {
 		matchFrontend
@@ -107,4 +120,8 @@ func (h *matchFrontendHandler) EnterMatch(ctx context.Context, in *EnterMatchReq
 
 func (h *matchFrontendHandler) LevelMatch(ctx context.Context, in *LevelMatchReq, out *LevelMatchRsp) error {
 	return h.MatchFrontendHandler.LevelMatch(ctx, in, out)
+}
+
+func (h *matchFrontendHandler) GetMatchInfo(ctx context.Context, in *GetMatchInfoReq, out *GetMatchInfoRsp) error {
+	return h.MatchFrontendHandler.GetMatchInfo(ctx, in, out)
 }

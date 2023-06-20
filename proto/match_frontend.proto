@@ -7,6 +7,7 @@ option go_package = "./proto;match_frontend";
 service Match_frontend {
 	rpc EnterMatch(EnterMatchReq) returns(EnterMatchRsp){}
 	rpc LevelMatch(LevelMatchReq) returns(LevelMatchRsp){}
+  rpc GetMatchInfo(GetMatchInfoReq) returns(GetMatchInfoRsp){}
 }
 
 message EnterMatchReq {
@@ -14,7 +15,8 @@ message EnterMatchReq {
 }
 
 message EnterMatchRsp {
-  string matchId = 1;
+  int32 code = 2;
+  string err = 3;
 }
 
 message MatchInfo {
@@ -22,15 +24,32 @@ message MatchInfo {
   int64  score = 2;
   string gameId = 3;
   int64 subType = 4;
-  string id = 5;
+  MatchStatus status = 5;
 }
 
 message LevelMatchReq {
-  string matchId = 1;
+  string playerId = 1;
   string gameId = 2;
   int64 subType = 3;
 }
 
 message LevelMatchRsp {
-  string err = 1;
+  int32 code = 1;
+  string err = 2;
+}
+
+message GetMatchInfoReq {
+  string playerId = 1;
+}
+
+message GetMatchInfoRsp {
+  int32 code = 1;
+  string err = 2;
+  MatchInfo result = 3;
+}
+
+enum MatchStatus {
+  idle = 0;
+  matching = 1;
+  joining = 2;
 }

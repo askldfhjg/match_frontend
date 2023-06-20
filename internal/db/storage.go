@@ -12,7 +12,8 @@ type Service interface {
 	Close(ctx context.Context) error
 	String() string
 	AddToken(ctx context.Context, info *match_frontend.MatchInfo) error
-	RemoveToken(ctx context.Context, matchId string, gameId string, subType int64) error
+	RemoveToken(ctx context.Context, playerId string, gameId string, subType int64) error
+	GetToken(ctx context.Context, playerId string) (*match_frontend.MatchInfo, error)
 }
 
 type MatchInfo struct {
