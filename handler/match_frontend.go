@@ -39,7 +39,7 @@ func (e *Handler) EnterMatch(ctx context.Context, req *match_frontend.EnterMatch
 		rsp.Err = "score error"
 		return nil
 	}
-	err := db.Default.AddToken(ctx, matchInfo)
+	err := db.Default.AddToken(context.Background(), matchInfo)
 	if err != nil {
 		logger.Errorf("EnterMatch AddToken err : %s", err.Error())
 		rsp.Code = -1
@@ -63,7 +63,7 @@ func (e *Handler) LevelMatch(ctx context.Context, req *match_frontend.LevelMatch
 		rsp.Err = "gameId err or subType err"
 		return nil
 	}
-	err := db.Default.RemoveToken(ctx, req.GetPlayerId(), req.GetGameId(), req.GetSubType())
+	err := db.Default.RemoveToken(context.Background(), req.GetPlayerId(), req.GetGameId(), req.GetSubType())
 	if err != nil {
 		logger.Errorf("LevelMatch RemoveToken err : %s", err.Error())
 		rsp.Code = -1
@@ -80,7 +80,7 @@ func (e *Handler) GetMatchInfo(ctx context.Context, req *match_frontend.GetMatch
 		rsp.Err = "playerId <= 0"
 		return nil
 	}
-	info, err := db.Default.GetToken(ctx, req.GetPlayerId())
+	info, err := db.Default.GetToken(context.Background(), req.GetPlayerId())
 	if err != nil {
 		logger.Errorf("LevelMatch AddToken err : %s", err.Error())
 		rsp.Code = -1
