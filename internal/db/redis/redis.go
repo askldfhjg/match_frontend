@@ -10,6 +10,8 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+const PlayerInfoExpireTime = 300
+
 func (m *redisBackend) AddToken(ctx context.Context, info *match_frontend.MatchInfo) error {
 	redisConn, err := m.redisPool.GetContext(ctx)
 	if err != nil {
@@ -42,7 +44,7 @@ func (m *redisBackend) AddToken(ctx context.Context, info *match_frontend.MatchI
 	}
 
 	//add new
-	_, err = redisConn.Do("SET", key, value)
+	_, err = redisConn.Do("SET", key, value, "EX", PlayerInfoExpireTime)
 	if err != nil {
 		return err
 	}
