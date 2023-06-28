@@ -111,7 +111,7 @@ func (m *redisBackend) GetToken(ctx context.Context, playerId string) (*match_fr
 		if err != redis.ErrNil {
 			return nil, err
 		} else {
-			return nil, nil
+			return &match_frontend.MatchInfo{}, nil
 		}
 	}
 	t := &match_frontend.MatchInfo{}
@@ -126,7 +126,7 @@ func (m *redisBackend) GetToken(ctx context.Context, playerId string) (*match_fr
 			return nil, err
 		} else {
 			redisConn.Do("DEL", key)
-			return nil, nil
+			return &match_frontend.MatchInfo{}, nil
 		}
 	}
 	return t, nil
