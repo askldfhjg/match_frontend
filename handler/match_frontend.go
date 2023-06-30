@@ -14,7 +14,7 @@ import (
 type Handler struct{}
 
 func (e *Handler) EnterMatch(ctx context.Context, req *match_frontend.EnterMatchReq, rsp *match_frontend.EnterMatchRsp) error {
-	logger.Infof("Received EnterMatch request with count: %+v", req)
+	//logger.Infof("Received EnterMatch request with count: %+v", req)
 
 	matchInfo, ok := proto.Clone(req.Param).(*match_frontend.MatchInfo)
 	if !ok {

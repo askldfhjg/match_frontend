@@ -15,11 +15,6 @@ import (
 	"match_frontend/internal/db"
 )
 
-const (
-	allTickets = "allTickets:%s:%d"
-	ticketKey  = "ticket:%s"
-)
-
 func New(opts ...db.Option) (db.Service, error) {
 	srv := &redisBackend{}
 	err := srv.Init(context.Background(), opts...)
