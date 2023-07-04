@@ -3,6 +3,7 @@ module match_frontend
 go 1.15
 
 require (
+	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/golang/protobuf v1.4.3
 	github.com/gomodule/redigo v1.8.9
 	github.com/micro/micro/v3 v3.3.0
