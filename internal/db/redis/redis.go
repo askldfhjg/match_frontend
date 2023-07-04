@@ -16,7 +16,7 @@ const (
 	ticketKey  = "ticket:"
 )
 
-const PlayerInfoExpireTime = 300
+const PlayerInfoExpireTime = 600
 
 func (m *redisBackend) AddToken(ctx context.Context, info *match_frontend.MatchInfo) error {
 	redisConn, err := m.redisPool.GetContext(ctx)
