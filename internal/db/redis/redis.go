@@ -12,8 +12,10 @@ import (
 )
 
 const (
-	allTickets = "allTickets:"
-	ticketKey  = "ticket:"
+	allTickets         = "allTickets:%d:%s"
+	ticketKey          = "ticket:"
+	poolVersionKey     = "poolVersionKey:"
+	lastPoolVersionKey = "lastPoolVersionKey:%s:%d"
 )
 
 const PlayerInfoExpireTime = 600
@@ -34,16 +36,24 @@ func (m *redisBackend) AddToken(ctx context.Context, info *match_frontend.MatchI
 		return err
 	}
 	if len(matchInfo) > 0 {
-		redisConn.Do("ZREM", allTickets+matchInfo, playerId)
+		version, err := redis.Int64(redisConn.Do("GET", poolVersionKey+matchInfo))
+		if err != nil {
+			return err
+		}
+		redisConn.Do("ZREM", fmt.Sprintf(allTickets, version, matchInfo), playerId)
 	}
 
 	//add new
 	value := fmt.Sprintf("%s:%d", info.GameId, info.SubType)
+	version, err := redis.Int64(redisConn.Do("GET", poolVersionKey+value))
+	if err != nil {
+		return err
+	}
 	_, err = redisConn.Do("SET", key, value, "EX", PlayerInfoExpireTime)
 	if err != nil {
 		return err
 	}
-	zsetKey := allTickets + value
+	zsetKey := fmt.Sprintf(allTickets, version, value)
 	_, err = redisConn.Do("ZADD", zsetKey, info.Score, playerId)
 	if err != nil {
 		_, errs := redisConn.Do("DEL", key)
@@ -51,6 +61,15 @@ func (m *redisBackend) AddToken(ctx context.Context, info *match_frontend.MatchI
 			logger.Error("ZADD and DEL %s have err %s", playerId, errs.Error())
 		}
 		return err
+	} else {
+		nowVersion, err := redis.Int64(redisConn.Do("GET", poolVersionKey+value))
+		if err != nil {
+			return err
+		}
+		if nowVersion != version {
+			zsetKey := fmt.Sprintf(allTickets, nowVersion, value)
+			redisConn.Do("ZADD", zsetKey, info.Score, playerId)
+		}
 	}
 	return nil
 }
@@ -68,12 +87,20 @@ func (m *redisBackend) RemoveToken(ctx context.Context, playerId string, gameId 
 		return err
 	}
 	if len(matchInfo) > 0 {
-		redisConn.Do("ZREM", allTickets+matchInfo, playerId)
+		version, err := redis.Int64(redisConn.Do("GET", poolVersionKey+matchInfo))
+		if err != nil {
+			return err
+		}
+		redisConn.Do("ZREM", fmt.Sprintf(allTickets, version, matchInfo), playerId)
 	}
 
 	value := fmt.Sprintf("%s:%d", gameId, subType)
 	if matchInfo != value {
-		zsetKey := allTickets + value
+		version, err := redis.Int64(redisConn.Do("GET", poolVersionKey+value))
+		if err != nil {
+			return err
+		}
+		zsetKey := fmt.Sprintf(allTickets, version, value)
 		redisConn.Do("ZREM", zsetKey, playerId)
 	}
 
@@ -113,14 +140,31 @@ func (m *redisBackend) GetToken(ctx context.Context, playerId string) (*match_fr
 		redisConn.Do("DEL", key)
 		return &match_frontend.MatchInfo{}, nil
 	}
-	zsetKey := allTickets + matchInfo
+
+	oldVersion, err := redis.Int64(redisConn.Do("GET", lastPoolVersionKey+key))
+	if err != nil && err != redis.ErrNil {
+		return nil, err
+	}
+	version, err := redis.Int64(redisConn.Do("GET", poolVersionKey+key))
+	if err != nil && err != redis.ErrNil {
+		return nil, err
+	}
+	oldzsetKey := fmt.Sprintf(allTickets, oldVersion, matchInfo)
+	zsetKey := fmt.Sprintf(allTickets, version, matchInfo)
 	score, err := redis.Int(redisConn.Do("ZSCORE", zsetKey, playerId))
 	if err != nil {
 		if err != redis.ErrNil {
 			return nil, err
 		} else {
-			redisConn.Do("DEL", key)
-			return &match_frontend.MatchInfo{}, nil
+			score, err = redis.Int(redisConn.Do("ZSCORE", oldzsetKey, playerId))
+			if err != nil {
+				if err != redis.ErrNil {
+					return nil, err
+				} else {
+					redisConn.Do("DEL", key)
+					return &match_frontend.MatchInfo{}, nil
+				}
+			}
 		}
 	}
 	return &match_frontend.MatchInfo{
