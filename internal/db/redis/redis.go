@@ -6,6 +6,7 @@ import (
 	match_frontend "match_frontend/proto"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gomodule/redigo/redis"
 	"github.com/micro/micro/v3/service/logger"
@@ -27,6 +28,7 @@ func (m *redisBackend) AddToken(ctx context.Context, info *match_frontend.MatchI
 	}
 	defer handleConnectionClose(&redisConn)
 
+	redisConn.Do("HSETNX", fmt.Sprintf(poolVersionKey, info.GameId, info.SubType), "poolVersionKey", time.Now().UnixNano())
 	playerId := info.GetPlayerId()
 
 	//remove old
