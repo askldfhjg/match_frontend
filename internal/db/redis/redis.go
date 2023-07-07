@@ -62,7 +62,7 @@ func (m *redisBackend) AddToken(ctx context.Context, info *match_frontend.MatchI
 		}
 		return err
 	} else {
-		nowVersion, err := redis.Int64(redisConn.Do("HGET", poolVersionKey+value, poolVersionKey))
+		nowVersion, err := redis.Int64(redisConn.Do("HGET", poolVersionKey+value, "poolVersionKey"))
 		if err != nil {
 			return err
 		}
@@ -87,7 +87,7 @@ func (m *redisBackend) RemoveToken(ctx context.Context, playerId string, gameId 
 		return err
 	}
 	if len(matchInfo) > 0 {
-		version, err := redis.Int64(redisConn.Do("HGET", poolVersionKey+matchInfo, poolVersionKey))
+		version, err := redis.Int64(redisConn.Do("HGET", poolVersionKey+matchInfo, "poolVersionKey"))
 		if err != nil {
 			return err
 		}
@@ -96,7 +96,7 @@ func (m *redisBackend) RemoveToken(ctx context.Context, playerId string, gameId 
 
 	value := fmt.Sprintf("%s:%d", gameId, subType)
 	if matchInfo != value {
-		version, err := redis.Int64(redisConn.Do("HGET", poolVersionKey+value, poolVersionKey))
+		version, err := redis.Int64(redisConn.Do("HGET", poolVersionKey+value, "poolVersionKey"))
 		if err != nil {
 			return err
 		}
